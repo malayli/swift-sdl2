@@ -15,9 +15,23 @@ let package = Package(
                 .brew(["sdl2"])
             ]
         ),
+        .systemLibrary(
+            name: "CSDL2_ttf",
+            pkgConfig: "sdl2_ttf",
+            providers: [
+                .brew(["sdl2_ttf"])
+            ]
+        ),
         .executableTarget(
             name: "MyGame",
-            dependencies: ["CSDL2"]
+            dependencies: ["CSDL2", "CSDL2_ttf"],
+            resources: [
+                .process("Resources")  // Changé de .copy à .process
+            ],
+            linkerSettings: [
+                .linkedLibrary("SDL2"),
+                .linkedLibrary("SDL2_ttf")
+            ]
         )
     ]
 )

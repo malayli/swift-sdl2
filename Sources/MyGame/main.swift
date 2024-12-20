@@ -1,44 +1,53 @@
 import Foundation
 import CSDL2
+import CSDL2_ttf
 
-enum WindowConfig {
-    static let windowName = "MyGameName"
-    static let width: Int32 = 800
-    static let height: Int32 = 600
-}
-
-enum FrameConfig {
-    static let delay: UInt32 = 16
-}
-
-// Initialize the SDL
+// Initialize the SDL library
 guard SDL_Init(SDL_INIT_VIDEO) == 0 else {
     fatalError("SDL could not initialize! SDL_Error: \(String(cString: SDL_GetError()))")
 }
 
-// Create the window
-let window = SDL_CreateWindow(WindowConfig.windowName,
-                              Int32(SDL_WINDOWPOS_CENTERED_MASK),
-                              Int32(SDL_WINDOWPOS_CENTERED_MASK),
-                              WindowConfig.width,
-                              WindowConfig.height,
-                              UInt32(SDL_WINDOW_SHOWN.rawValue)
+// Initialize the SDL_ttf library
+guard TTF_Init() == 0 else {
+    fatalError("TTF could not initialize!")
+}
+
+// Get the font path
+let fontPath = getFontPath()
+print("Using font path: \(fontPath)")
+
+// Load the font
+guard let font = TTF_OpenFont(fontPath, 24) else {
+    fatalError("Could not load font! SDL_ttf Error")
+}
+
+// Create the SDL window
+let window = SDL_CreateWindow(
+    "BeyondU21",
+    Int32(SDL_WINDOWPOS_CENTERED_MASK), Int32(SDL_WINDOWPOS_CENTERED_MASK),
+    800, 600,
+    UInt32(SDL_WINDOW_SHOWN.rawValue)
 )
 
-// Create a renderer
-guard let renderer = SDL_CreateRenderer(window, -1,UInt32(SDL_RENDERER_ACCELERATED.rawValue)) else {
+// Create the renderer
+guard let renderer = SDL_CreateRenderer(
+    window, -1,
+    UInt32(SDL_RENDERER_ACCELERATED.rawValue)
+) else {
     fatalError("Renderer could not be created!")
 }
 
-// Display a black screen by default
+let text = "Digital Fox presents"
+var context = GameStateHandler()
+var event = SDL_Event()
+
+// Display an initial black screen
 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255)
 SDL_RenderClear(renderer)
 SDL_RenderPresent(renderer)
 
 // Game loop
-var event = SDL_Event()
 var running = true
-
 while running {
     // Event handling
     while SDL_PollEvent(&event) > 0 {
@@ -47,11 +56,15 @@ while running {
         }
     }
 
+    context.update()
+    context.render(renderer: renderer, font: font, text: text)
     SDL_RenderPresent(renderer)
-    SDL_Delay(FrameConfig.delay)
+    SDL_Delay(ConfigurationConstants.frameDelay)
 }
 
 // Cleanup
+TTF_CloseFont(font)
+TTF_Quit()
 SDL_DestroyRenderer(renderer)
 SDL_DestroyWindow(window)
 SDL_Quit()
