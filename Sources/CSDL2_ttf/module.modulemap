@@ -1,5 +1,5 @@
 module CSDL2_ttf [system] {
-    header "/opt/homebrew/include/SDL2/SDL_ttf.h"
+    header "PlatformSpecificSDL_ttf.h"
     link "SDL2_ttf"
     export *
 }
